@@ -1,0 +1,182 @@
+import control.matlab as ml
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy import genfromtxt
+from math import pi
+from os import path
+from scipy import signal
+
+
+#For at python kan finde og gemme dokumenter
+def sti_til_fil(filnavn):
+	return path.join(path.dirname(__file__),filnavn)
+#-----------
+#Figur størrelse
+def fig_size(højde):
+    fig = plt.figure(1)
+    return fig.set_figheight(højde),fig.set_figwidth(10)
+#-----------
+
+        
+my_data = genfromtxt(sti_til_fil('Højpas 3k.csv'),delimiter=',',names=['FREQ','iIN','iOUT','fase'])
+#Data hentes fra csv filen waveforms har eksporteret. 
+
+
+
+R=220 #Modstanden
+C=15*10**(-9) #Kondensatoren
+
+
+
+#Den teoretiske værdi
+def teori(w):
+    return 20*np.log10((R*C*2*np.pi*w)/np.sqrt(((R*C*2*np.pi*w)**2)+1))
+
+#Faseplot
+def fase(w):
+    #Der omregnes fra rad til deg med np.degrees()
+    return np.degrees(np.arctan2(1,R*C*2*np.pi*w))
+
+
+#Knækfrekvensen---------------------------------------
+f_c=1/(2*np.pi*R*C)
+print(f_c)
+#-----------------------------------------------------
+
+#Bodeplot----------------------------------------------------------
+ax=plt.subplot(211)
+#ax.set_xlabel('Frekvens [Hz]')
+ax.set_ylabel('Amplitude [dB]')
+ax.set_title('Bode- og faseplot af højpasfilter')
+ax.grid('on')
+ax.set_ylim(-35,2)
+
+
+
+plt.semilogx(my_data['FREQ'],my_data['iOUT'],label='Data',color='blue')
+plt.semilogx(my_data['FREQ'],teori(my_data['FREQ']),label='Simulation',color='red',linestyle='dotted')
+
+plt.vlines(f_c,-45,2,color='green',linestyle='dashed',label='Knækfrekvens')
+plt.hlines(-3,0,f_c,color='black',linestyle='dashed',label='-3 dB')
+
+plt.legend(loc='lower right')
+
+  
+#Faseplot-----------------------------------------------------------------------
+az=plt.subplot(212)
+az.set_xlabel('Frekvens [Hz]')
+az.set_ylabel('Grader')
+az.grid('on')
+az.set_ylim(-1,100)
+plt.semilogx(my_data['FREQ'],my_data['fase'],color='blue',label='Data')
+plt.semilogx(my_data['FREQ'], fase(my_data['FREQ']),color='red',linestyle='dotted',label='Simulation')
+
+plt.vlines(f_c,-2,101,color='green',linestyle='dashed',label='Knækfrekvens')
+plt.hlines(45,0,f_c,color='black',linestyle='dashed',label='Faseforskydning (45°)')
+
+plt.legend(loc='upper right')
+fig_size(7)
+plt.savefig(sti_til_fil('Bodeplot_høj.pdf'),dpi=500)
+plt.show()
+
+
+#Zoom----------------------------------------------------------------------------------
+#Bodeplot----------------------------------------------------------
+ax=plt.subplot(111)
+ax.set_xlabel('Frekvens [Hz]')
+ax.set_ylabel('Amplitude [dB]')
+ax.set_title('Udsnit af Bodeplot af højpasfilter')
+ax.grid('on')
+ax.set_ylim(-1.5,0.5)
+ax.set_xlim(my_data['FREQ'][2000],my_data['FREQ'][3000])
+
+
+
+plt.semilogx(my_data['FREQ'],my_data['iOUT'],label='Data',color='blue')
+plt.semilogx(my_data['FREQ'],teori(my_data['FREQ']),label='Simulation',color='red',linestyle='dotted')
+
+
+
+plt.legend(loc='lower right')
+plt.savefig(sti_til_fil('Højpas_zoom.pdf'),dpi=500)
+fig_size(3)
+plt.show()
+#----------------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+
+afvigelse=my_data['iOUT']-teori(my_data['FREQ'])
+af=plt.subplot(211)
+
+#Afvigelse
+plt.semilogx(my_data['FREQ'],abs(afvigelse))
+af.set_title('Højpas afvigelse [Amplituden]')
+#af.set_xlabel('Frekvens [Hz]')
+af.set_ylabel('Afvigelse [dB]')
+af.grid('on')
+plt.vlines(f_c,0,0.35,color='green',linestyle='dashed',label='Knækfrekvens')
+
+#Relativ afvigelse
+afvigelse_procent=(afvigelse/teori(my_data['FREQ']))*100
+
+
+ag=plt.subplot(212)
+
+ag.set_xlabel('Frekvens [Hz]')
+ag.set_ylabel('Relativ afvigelse [%]')
+ag.grid('on')
+
+plt.semilogx(my_data['FREQ'],abs(afvigelse_procent))
+
+plt.vlines(f_c,-2,500,color='green',linestyle='dashed',label='Knækfrekvens')
+fig_size(7)
+plt.savefig(sti_til_fil('Afvigelse_højpas.pdf'),dpi=500)
+plt.show()
+
+
+#-------------------------------------------------------------------------------
+
+
+
+
+#Afviglese for faseplot----------------
+
+#Plot af afvigelsen af faseplottet
+
+#----
+afvigelse_fase=my_data['fase']-fase(my_data['FREQ'])
+#Afvigelsen numerisk
+
+af=plt.subplot(211)
+
+#Afvigelse
+plt.semilogx(my_data['FREQ'],abs(afvigelse_fase))
+#Den absolutte værdi af afvigelsen plottes i et semilogaritmisk koordinatsystem
+af.set_title('Højpas afvigelse [Fasen]')
+#af.set_xlabel('Frekvens [Hz]')
+af.set_ylabel('Afvigelse [grader]')
+af.grid('on')
+plt.vlines(f_c,0,0.6,color='green',linestyle='dashed',label='Knækfrekvens')
+
+#Relativ afvigelse
+afvigelse_fase_procent=(afvigelse_fase/fase(my_data['FREQ']))*100
+
+#  ((Data-Tabelværdi)/Tabelværdi)*100
+
+
+ag=plt.subplot(212)
+
+ag.set_xlabel('Frekvens [Hz]')
+ag.set_ylabel('Relativ afvigelse [%]')
+ag.grid('on')
+
+ag.set_ylim(-1,10)
+plt.semilogx(my_data['FREQ'],abs(afvigelse_fase_procent))
+
+plt.vlines(f_c,-2,10,color='green',linestyle='dashed',label='Knækfrekvens')
+fig_size(7)
+plt.savefig(sti_til_fil('Afvigelse_fase_højpas.pdf'),dpi=500)
+plt.show()
+
+
+print('Så burde det hele være printet :)')
