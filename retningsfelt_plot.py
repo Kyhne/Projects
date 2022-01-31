@@ -1,3 +1,5 @@
+# Plots a direction field for a first order IVP (Initial Value Problem)
+
 import numpy as np
 from scipy.integrate import odeint
 from matplotlib import pyplot as plt
