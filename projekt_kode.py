@@ -7,7 +7,7 @@ import soundfile as sf
 from scipy.io.wavfile import write
 
 # Load data
-data, samplerate = sf.read(r'C:\Users\Nikolai Lund Kühne\OneDrive - Aalborg Universitet\Uni\4. semester\P4 - Signaler og Systemer\ingridstoej.wav')
+data, samplerate = sf.read(r'pathtofile')
 
 
 def downsample(array,n,phase):
@@ -314,7 +314,7 @@ plt.show()
 
 
 # Output is given by the convolution between the input and the impulseresponse of the FIR filter
-result = np.convolve(data,hd4) #Always hd4 since the order is 1024
+result = np.convolve(data,hd4) #Always hd4 since the order is 1024 and satisfies the filter specifications
 # time = np.linspace(0,4,32000)
 # plt.specgram(result,Fs=14700, noverlap=128, scale = 'dB', cmap='inferno', window = np.hanning(256))
 # cbar = plt.colorbar()
@@ -325,6 +325,6 @@ result = np.convolve(data,hd4) #Always hd4 since the order is 1024
 # plt.xlabel('Tid [sec]')
 # plt.show()
 # Write wav-file
-# write(r'C:\Users\Nikolai Lund Kühne\OneDrive - Aalborg Universitet\Uni\4. semester\P4 - Signaler og Systemer\ingridnoisyrevisedHLS.wav', Fs, result.astype(np.float32))
+# write(r'pathtodestination', Fs, result.astype(np.float32))
 
 
